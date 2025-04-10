@@ -9,12 +9,16 @@ Created by:
 
 # Import key components to make them available at the package level
 from .prompt import Prompt
-from .exceptions import ( # noqa: F401
+from .exceptions import (  # noqa: F401
     EzpromptError,
     TemplateError,
     ValidationError,
     ModelError,
     ContextLengthError,
+)
+from .warnings import (  # noqa: F401
+    EzpromptWarning,
+    UnusedInputWarning,
 )
 
 __all__ = [
@@ -24,4 +28,4 @@ __all__ = [
     "ValidationError",
     "ModelError",
     "ContextLengthError",
-] 
+]
