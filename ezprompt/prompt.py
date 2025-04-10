@@ -5,20 +5,18 @@
 import jinja2
 import litellm
 import asyncio
+import warnings
 from typing import Dict, Any, Optional, Tuple, List
 
+# Custom exceptions and warnings
 from .exceptions import (
     TemplateError,
     ValidationError,
     ModelError,
     ContextLengthError,
 )
-from .models import (
-    get_model_info,
-    get_token_count,
-    estimate_cost,
-    find_models_for_prompt_length,
-)
+from .warnings import UnusedInputWarning
+
 
 class Prompt:
     """Represents a prompt to be sent to an LLM."""
@@ -39,23 +37,38 @@ class Prompt:
         self._model_info: Optional[Dict[str, Any]] = None
 
         # Initialize Jinja environment
+        # StrictUndefined: Enforces perfect adherence to the template
         self._jinja_env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
+        # Check template can be parsed
         try:
             self._parsed_template = self._jinja_env.parse(template)
         except jinja2.TemplateSyntaxError as e:
             raise TemplateError(f"Syntax error in template: {e}") from e
-        
+
         self._validate_inputs()
 
     def _validate_inputs(self):
         """Checks if all required template variables are present in inputs."""
-        required_vars = jinja2.meta.find_undeclared_variables(self._parsed_template)
+        required_vars = jinja2.meta.find_undeclared_variables(
+            self._parsed_template
+        )
+
         missing_vars = required_vars - set(self.inputs.keys())
+
         if missing_vars:
             raise ValidationError(
                 f"Missing required inputs for template: {', '.join(missing_vars)}"
             )
-        # We could add checks for unused inputs as well, if desired.
+
+        # Check for unused inputs and add warning
+        unused_vars = set(self.inputs.keys()) - required_vars
+
+        if unused_vars:
+            warnings.warn(
+                f"Some provided inputs are not used in template: {', '.join(unused_vars)}",
+                UnusedInputWarning,
+            )
 
     async def _render_prompt(self) -> str:
         """Renders the Jinja template with the provided inputs."""
@@ -87,15 +100,23 @@ class Prompt:
         """
         issues = []
         cost = None
-        
+
         # 1. Check model info
         self._model_info = await get_model_info(self.model)
         if not self._model_info or self._model_info.get("error"):
-            err_msg = self._model_info.get("error", "Unknown error") if self._model_info else "Model not found or info unavailable"
-            issues.append(f"Model Error: Could not retrieve info for model '{self.model}'. {err_msg}")
-            return issues, cost # Cannot proceed without model info
+            err_msg = (
+                self._model_info.get("error", "Unknown error")
+                if self._model_info
+                else "Model not found or info unavailable"
+            )
+            issues.append(
+                f"Model Error: Could not retrieve info for model '{self.model}'. {err_msg}"
+            )
+            return issues, cost  # Cannot proceed without model info
         if not self._model_info.get("litellm_info_available"):
-             issues.append(f"Warning: Limited info available for model '{self.model}'. Context length and cost checks may be inaccurate.")
+            issues.append(
+                f"Warning: Limited info available for model '{self.model}'. Context length and cost checks may be inaccurate."
+            )
 
         # 2. Render prompt
         try:
@@ -108,12 +129,17 @@ class Prompt:
         try:
             self._input_tokens = await get_token_count(self.model, rendered)
         except Exception as e:
-             issues.append(f"Tokenization Error: Could not count tokens for model '{self.model}'. {e}")
-             # Attempt to continue with checks if possible, but context length check will likely fail
-             self._input_tokens = None # Ensure it's None if counting failed
+            issues.append(
+                f"Tokenization Error: Could not count tokens for model '{self.model}'. {e}"
+            )
+            # Attempt to continue with checks if possible, but context length check will likely fail
+            self._input_tokens = None  # Ensure it's None if counting failed
 
         # 4. Check context length
-        if self._input_tokens is not None and self._model_info.get("max_input_tokens") is not None:
+        if (
+            self._input_tokens is not None
+            and self._model_info.get("max_input_tokens") is not None
+        ):
             max_len = self._model_info["max_input_tokens"]
             if self._input_tokens > max_len:
                 msg = (
@@ -122,33 +148,56 @@ class Prompt:
                 )
                 issues.append(msg)
                 # Find alternative models
-                suggested_models_info = await find_models_for_prompt_length(self._input_tokens, current_model=self.model)
+                suggested_models_info = await find_models_for_prompt_length(
+                    self._input_tokens, current_model=self.model
+                )
                 if suggested_models_info:
                     suggestions = []
-                    for info in suggested_models_info[:5]: # Limit suggestions
-                         cost_info = "(Cost N/A)" 
-                         if info.get("input_cost_per_token") is not None:
-                             # Rough cost estimate for the current prompt with the suggested model
-                             est_cost = await estimate_cost(info["model_name"], self._input_tokens)
-                             cost_info = f"(Est. Cost: ${est_cost:.6f})" if est_cost is not None else "(Cost N/A)"
-                         suggestions.append(f"  - {info['model_name']} (Max Tokens: {info.get('max_input_tokens', 'N/A')}) {cost_info}")
-                    issues.append("Suggested models that might fit this prompt:\n" + "\n".join(suggestions))
+                    for info in suggested_models_info[:5]:  # Limit suggestions
+                        cost_info = "(Cost N/A)"
+                        if info.get("input_cost_per_token") is not None:
+                            # Rough cost estimate for the current prompt with the suggested model
+                            est_cost = await estimate_cost(
+                                info["model_name"], self._input_tokens
+                            )
+                            cost_info = (
+                                f"(Est. Cost: ${est_cost:.6f})"
+                                if est_cost is not None
+                                else "(Cost N/A)"
+                            )
+                        suggestions.append(
+                            f"  - {info['model_name']} (Max Tokens: {info.get('max_input_tokens', 'N/A')}) {cost_info}"
+                        )
+                    issues.append(
+                        "Suggested models that might fit this prompt:\n"
+                        + "\n".join(suggestions)
+                    )
                 else:
-                    issues.append("No alternative models found in litellm database that fit this prompt length.")
+                    issues.append(
+                        "No alternative models found in litellm database that fit this prompt length."
+                    )
                 # Raise the specific exception after gathering info
                 # raise ContextLengthError(msg, self._input_tokens, max_len, suggested_models_info) # Decided to return issues instead of raising here
         elif self._input_tokens is None:
-            issues.append(f"Warning: Could not check context length due to tokenization error.")
+            issues.append(
+                f"Warning: Could not check context length due to tokenization error."
+            )
         elif self._model_info.get("max_input_tokens") is None:
-             issues.append(f"Warning: Cannot check context length for model '{self.model}' as max_input_tokens is unknown.")
+            issues.append(
+                f"Warning: Cannot check context length for model '{self.model}' as max_input_tokens is unknown."
+            )
 
         # 5. Estimate cost (only if no major issues found, especially context length)
-        if self._input_tokens is not None and not any("Context Length Error" in issue for issue in issues):
+        if self._input_tokens is not None and not any(
+            "Context Length Error" in issue for issue in issues
+        ):
             # Note: Cost estimation requires assumptions about output tokens.
             # We'll estimate based on input only for now.
             cost = await estimate_cost(self.model, self._input_tokens)
             if cost is None:
-                issues.append(f"Warning: Could not estimate cost for model '{self.model}'. Pricing info might be unavailable.")
+                issues.append(
+                    f"Warning: Could not estimate cost for model '{self.model}'. Pricing info might be unavailable."
+                )
 
         return issues if issues else None, cost
 
@@ -172,22 +221,32 @@ class Prompt:
         issues, _ = await self.check()
         if issues:
             # If context length error is the primary issue, raise it specifically
-            context_error_msg = next((issue for issue in issues if "Context Length Error" in issue), None)
-            if context_error_msg and self._input_tokens and self._model_info and self._model_info.get("max_input_tokens"):
-                 # Re-fetch suggested models if needed, or reuse from check if stored
-                 suggested = await find_models_for_prompt_length(self._input_tokens, self.model)
-                 raise ContextLengthError(
-                     context_error_msg,
-                     prompt_length=self._input_tokens,
-                     max_length=self._model_info["max_input_tokens"],
-                     suggested_models=suggested
-                 )
+            context_error_msg = next(
+                (issue for issue in issues if "Context Length Error" in issue),
+                None,
+            )
+            if (
+                context_error_msg
+                and self._input_tokens
+                and self._model_info
+                and self._model_info.get("max_input_tokens")
+            ):
+                # Re-fetch suggested models if needed, or reuse from check if stored
+                suggested = await find_models_for_prompt_length(
+                    self._input_tokens, self.model
+                )
+                raise ContextLengthError(
+                    context_error_msg,
+                    prompt_length=self._input_tokens,
+                    max_length=self._model_info["max_input_tokens"],
+                    suggested_models=suggested,
+                )
             # Otherwise, raise a general validation error summarizing issues
             raise ValidationError("Prompt checks failed:\n" + "\n".join(issues))
 
         if not self._rendered_prompt:
-             # Should have been rendered by check(), but as a fallback:
-             await self._render_prompt()
+            # Should have been rendered by check(), but as a fallback:
+            await self._render_prompt()
 
         messages = [{"role": "user", "content": self._rendered_prompt}]
 
@@ -195,16 +254,16 @@ class Prompt:
             # Ensure litellm is called asynchronously if possible
             # litellm.completion itself is blocking, but acompletion is async
             response = await litellm.acompletion(
-                model=self.model,
-                messages=messages,
-                **kwargs
+                model=self.model, messages=messages, **kwargs
             )
             return response
         except Exception as e:
             # Catch potential API errors, connection issues, etc. from litellm
-            raise ModelError(f"Error sending prompt to model '{self.model}': {e}") from e
+            raise ModelError(
+                f"Error sending prompt to model '{self.model}': {e}"
+            ) from e
 
     # Potentially add a method to get the rendered prompt without sending
     async def get_rendered_prompt(self) -> str:
         """Returns the rendered prompt string."""
-        return await self._render_prompt() 
+        return await self._render_prompt()
