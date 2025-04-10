@@ -6,7 +6,7 @@ An easy-to-use library for creating and sending prompts to various LLMs.
 
 - Simple prompt definition using Markdown and Jinja templating.
 - Automatic input validation against prompt templates.
-- Model selection from a wide range of providers (powered by LiteLLM).
+- Model selection from a wide range of providers.
 - Context length validation with suggestions for suitable models.
 - Cost estimation before sending prompts.
 - Up-to-date model information (context size, pricing).
