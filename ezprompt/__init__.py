@@ -1,5 +1,5 @@
 """
-ezprompt: An easy-to-use library for creating and sending prompts to various LLMs.
+ezprompt: An easy-to-use library for creating and sending prompts to LLMs.
 
 Created by:
     - Connor Skelland
