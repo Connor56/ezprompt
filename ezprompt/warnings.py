@@ -1,7 +1,5 @@
 """Custom warning types for the ezprompt library."""
 
-from warnings import Warning
-
 
 class EzpromptWarning(Warning):
     """Base class for all ezprompt warnings."""
