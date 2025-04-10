@@ -3,10 +3,10 @@
 """The main Prompt class for ezprompt."""
 
 import jinja2
-import litellm
 import asyncio
 import warnings
 from typing import Dict, Any, Optional, Tuple, List
+from .models import get_model_info
 
 # Custom exceptions and warnings
 from .exceptions import (
@@ -22,12 +22,17 @@ class Prompt:
     """Represents a prompt to be sent to an LLM."""
 
     def __init__(self, template: str, inputs: Dict[str, Any], model: str):
-        """Initializes the Prompt object.
+        """
+        Initialize the Prompt object.
 
-        Args:
-            template: The prompt template string (can use Jinja2 syntax).
-            inputs: A dictionary of input variables for the template.
-            model: The name of the target LLM (e.g., 'gpt-3.5-turbo').
+        Parameters
+        ----------
+        template : str
+            The prompt template string (can use Jinja2 syntax).
+        inputs : dict
+            A dictionary of input variables for the template.
+        model : str
+            The name of the target LLM (e.g., 'gpt-3.5-turbo').
         """
         self.template = template
         self.inputs = inputs
@@ -49,7 +54,10 @@ class Prompt:
         self._validate_inputs()
 
     def _validate_inputs(self):
-        """Checks if all required template variables are present in inputs."""
+        """
+        Checks if all the prompt template variables are present in
+        the provided inputs.
+        """
         required_vars = jinja2.meta.find_undeclared_variables(
             self._parsed_template
         )
@@ -70,33 +78,46 @@ class Prompt:
                 UnusedInputWarning,
             )
 
-    async def _render_prompt(self) -> str:
-        """Renders the Jinja template with the provided inputs."""
+    def _render_prompt(self) -> str:
+        """
+        Renders the Jinja template with the provided inputs. Returns
+        the rendered prompt string.
+        """
         if self._rendered_prompt is None:
             try:
                 template = self._jinja_env.from_string(self.template)
                 self._rendered_prompt = template.render(self.inputs)
+
             except jinja2.UndefinedError as e:
                 # This might be redundant due to _validate_inputs, but catches render-time issues
                 raise ValidationError(f"Error rendering template: {e}") from e
+
             except Exception as e:
                 raise TemplateError(f"Failed to render template: {e}") from e
+
         return self._rendered_prompt
 
-    async def check(self) -> Tuple[Optional[List[str]], Optional[float]]:
-        """Performs validation checks and estimates cost.
+    def check(self) -> Tuple[Optional[List[str]], Optional[float]]:
+        """
+        Performs validation checks and estimates cost.
 
-        Checks:
-        1. Model existence and basic info retrieval.
-        2. Renders the prompt.
-        3. Calculates token count.
-        4. Checks context length against model limits.
-        5. Estimates cost.
-
-        Returns:
+        Returns
+        -------
+        tuple
             A tuple containing:
-            - A list of issue strings if any problems are found, otherwise None.
-            - The estimated cost (float) if checks pass, otherwise None.
+                - list or None
+                    List of issue strings if any problems found, otherwise None
+                - float or None
+                    Estimated cost if checks pass, otherwise None
+
+        Notes
+        -----
+        Performs the following checks:
+        1. Model existence and basic info retrieval
+        2. Renders the prompt
+        3. Calculates token count
+        4. Checks context length against model limits
+        5. Estimates cost
         """
         issues = []
         cost = None
