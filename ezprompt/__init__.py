@@ -10,22 +10,24 @@ Created by:
 # Import key components to make them available at the package level
 from .prompt import Prompt
 from .exceptions import (  # noqa: F401
-    EzpromptError,
+    EZPromptError,
     TemplateError,
     ValidationError,
     ModelError,
     ContextLengthError,
 )
 from .warnings import (  # noqa: F401
-    EzpromptWarning,
+    EZPromptWarning,
     UnusedInputWarning,
 )
 
 __all__ = [
     "Prompt",
-    "EzpromptError",
+    "EZPromptError",
     "TemplateError",
     "ValidationError",
     "ModelError",
     "ContextLengthError",
+    "EZPromptWarning",
+    "UnusedInputWarning",
 ]
