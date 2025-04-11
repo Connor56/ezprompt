@@ -5,6 +5,7 @@
 import jinja2
 import asyncio
 import warnings
+from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 from .models import get_model_info
 
@@ -18,10 +19,47 @@ from .exceptions import (
 from .warnings import UnusedInputWarning
 
 
-class Prompt:
-    """Represents a prompt to be sent to an LLM."""
+# Define the Abstract Base Class
+class BasePrompt(ABC):
+    """
+    Abstract base class defining the interface for prompt objects.
 
-    def __init__(self, template: str, inputs: Dict[str, Any], model: str):
+    Use this when you're building your own custom prompts to stay
+    in line with the EZPrompt API.
+    """
+
+    @abstractmethod
+    def __init__(
+        self,
+        template: str,
+        inputs: Dict[str, Any],
+        model: str,
+        api_key: str,
+    ):
+        """Initialize the prompt object."""
+        pass
+
+    @abstractmethod
+    def _render_prompt(self) -> str:
+        """Render the prompt template with inputs."""
+        pass
+
+    @abstractmethod
+    def check(self) -> Tuple[Optional[List[str]], Optional[float]]:
+        """Perform validation checks and estimate cost."""
+        pass
+
+    @abstractmethod
+    async def send(self, **kwargs) -> Any:
+        """Send the prompt to the LLM."""
+        pass
+
+
+# Make Prompt implement the BasePrompt interface
+class Prompt(BasePrompt):
+    """Represents a prompt using Jinja2 templating to be sent to an LLM."""
+
+    ):
         """
         Initialize the Prompt object.
 
