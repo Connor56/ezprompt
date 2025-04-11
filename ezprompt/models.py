@@ -140,7 +140,7 @@ MODEL_INFO = [
 ]
 
 
-async def get_model_info(model_id: str) -> ModelInfo:
+def get_model_info(model_id: str) -> ModelInfo:
     """
     Gets information about a specific model, using cached data if
     available.
