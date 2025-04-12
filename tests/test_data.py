@@ -1,7 +1,23 @@
 import pytest
-from ezprompt.data import PromptOutcome, save_outcome, CACHE_DIR
+from ezprompt.data import (
+    PromptOutcome,
+    save_outcome,
+    CACHE_DIR,
+    process_completion,
+)
+from ezprompt.models import ModelInfo, get_model_info
 import os
 import json
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+)
+from openai.types.chat.chat_completion import Choice
+from openai.types.completion_usage import (
+    CompletionUsage,
+    CompletionTokensDetails,
+    PromptTokensDetails,
+)
 
 
 @pytest.fixture
@@ -17,6 +33,53 @@ def test_outcome():
         output_tokens=22,
         input="Is the sky always blue?",
         response="No, the sky is not always blue. It depends on what angle the sun is hitting it.",
+    )
+
+
+@pytest.fixture
+def test_model_info():
+    return get_model_info("test_model")
+
+
+@pytest.fixture
+def test_completion():
+    return ChatCompletion(
+        id="chatcmpl-BLarZrpR7V3PRzRExUyHLl5b1QoGU",
+        choices=[
+            Choice(
+                finish_reason="stop",
+                index=0,
+                logprobs=None,
+                message=ChatCompletionMessage(
+                    content="The Battle of Agincourt took place on October 25, 1415, and the weather is often noted for having a significant impact on the outcome. Historical accounts suggest that it had been raining heavily in the days leading up to the battle, making the ground muddy and difficult to traverse. This muddy terrain played a crucial role, as it hindered the heavily armored French knights, putting them at a disadvantage against the English forces led by Henry V, who utilized longbowmen to great effect.",
+                    refusal=None,
+                    role="assistant",
+                    annotations=[],
+                    audio=None,
+                    function_call=None,
+                    tool_calls=None,
+                ),
+            )
+        ],
+        created=1744486289,
+        model="gpt-4o-2024-08-06",
+        object="chat.completion",
+        service_tier="default",
+        system_fingerprint="fp_432e014d75",
+        usage=CompletionUsage(
+            completion_tokens=101,
+            prompt_tokens=25,
+            total_tokens=126,
+            completion_tokens_details=CompletionTokensDetails(
+                accepted_prediction_tokens=0,
+                audio_tokens=0,
+                reasoning_tokens=0,
+                rejected_prediction_tokens=0,
+            ),
+            prompt_tokens_details=PromptTokensDetails(
+                audio_tokens=0, cached_tokens=0
+            ),
+        ),
     )
 
 
