@@ -29,7 +29,6 @@ class ModelInfo:
     capabilities: Optional[List[str]] = None
     provider: Optional[str] = None
     version: Optional[str] = None
-    is_deprecated: bool = False
     max_output_tokens: Optional[int] = None
     call_cost: Optional[float] = None
     # Field to cache the tokenizer
