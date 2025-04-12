@@ -191,6 +191,18 @@ MODEL_INFO = [
         capabilities=["Understand and execute web queries"],
         version="4.5",
     ),
+    ModelInfo(
+        id="test_model",
+        context_length=128000,
+        tokenizer_name="cl100k_base",
+        max_output_tokens=16384,
+        pricing_in=5.0,
+        pricing_out=10.00,
+        call_cost=0.10,
+        description="Test model for development purposes.",
+        capabilities=["Test"],
+        version="1.0",
+    ),
 ]
 
 
