@@ -27,7 +27,7 @@ class PromptOutcome:
     model: str
     # The text that was input and the response that was generated
     # Optional, as potentially useful for analysis
-    input: Optional[str] = None
+    prompt: Optional[str] = None
     response: Optional[str] = None
 
 
