@@ -3,7 +3,7 @@ from ezprompt.data import (
     PromptOutcome,
     save_outcome,
     CACHE_DIR,
-    process_completion,
+    process_response,
 )
 from ezprompt.models import ModelInfo, get_model_info
 import os
@@ -31,6 +31,7 @@ def test_outcome():
         input_tokens=13,
         reasoning_tokens=234,
         output_tokens=22,
+        model="test_model",
         input="Is the sky always blue?",
         response="No, the sky is not always blue. It depends on what angle the sun is hitting it.",
     )
@@ -42,7 +43,7 @@ def test_model_info():
 
 
 @pytest.fixture
-def test_completion():
+def test_chat_completion():
     return ChatCompletion(
         id="chatcmpl-BLarZrpR7V3PRzRExUyHLl5b1QoGU",
         choices=[
@@ -109,6 +110,7 @@ def test_save_outcome(test_outcome):
             "input_tokens": 13,
             "reasoning_tokens": 234,
             "output_tokens": 22,
+            "model": "test_model",
         }
     ]
 
@@ -145,7 +147,23 @@ def test_save_outcome_multiple_times(test_outcome):
         "input_tokens": 13,
         "reasoning_tokens": 234,
         "output_tokens": 22,
+        "model": "test_model",
     }
 
     assert outcomes[0] == expected_outcome
     assert outcomes[1] == expected_outcome
+
+
+def test_process_response(test_chat_completion, test_model_info):
+    """Test that process_response correctly processes a completion"""
+    # Create a test completion
+    outcome = process_response(test_chat_completion, test_model_info)
+
+    assert outcome.input_tokens == 25
+    assert outcome.reasoning_tokens == 0
+    assert outcome.output_tokens == 101
+    assert outcome.input_cost == 0.000125
+    assert outcome.reasoning_cost == 0.0
+    assert outcome.output_cost == 0.00101
+    assert outcome.tool_cost == 0.1
+    assert outcome.total_cost == 0.101135
