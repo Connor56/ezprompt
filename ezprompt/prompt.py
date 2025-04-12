@@ -9,8 +9,9 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 from .models import get_model_info
-from .data import save_outcome, process_completion
+from .data import save_outcome, process_response, PromptOutcome
 import hashlib
+import tiktoken
 
 # Custom exceptions and warnings
 from .exceptions import (
@@ -180,13 +181,14 @@ class Prompt(BasePrompt):
         self._input_tokens = None  # Ensure it's None initially
 
     async def send(self, **kwargs) -> Any:
+    async def send(self, **kwargs) -> PromptOutcome:
         """
         Sends the prompt to the specified LLM and returns the response.
         """
         cost = self._check()
 
         if cost is not None and self.log:
-            print(f"Minimum cost of prompt is: {cost}")
+            print(f"Minimum prompt cost is: {cost}")
 
         rendered_prompt = self._render()  # Ensure it's rendered
 
@@ -198,7 +200,13 @@ class Prompt(BasePrompt):
             **kwargs,
         )
 
-        if self.log:
-            print(f"Prompt Cost: {token_cost}")
+        outcome = process_response(response, self._model_info)
 
-        return response.choices[0].message.content
+        # Save the outcome to the cache
+        save_outcome(outcome, self.__name__, self._hash)
+
+        # Add the text of the prompt and response to the outcome
+        outcome.prompt = rendered_prompt
+        outcome.response = response.choices[0].message.content
+
+        return outcome
