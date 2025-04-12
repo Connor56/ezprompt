@@ -177,10 +177,22 @@ class Prompt(BasePrompt):
         """
         Performs validation checks and estimates cost.
         """
-        cost = None
-        self._input_tokens = None  # Ensure it's None initially
+        if self._input_tokens > self._model_info.context_length:
+            raise ContextLengthError(
+                f"Input tokens ({self._input_tokens}) exceed the model's context length ({self._model_info.context_length})"
+            )
 
-    async def send(self, **kwargs) -> Any:
+        # TODO: add the ability to load cached outcomes and predict cost based on that
+
+        min_cost = (
+            self._model_info.call_cost  # Base cost
+            + self._input_tokens
+            * self._model_info.pricing_in
+            / 1_000_000  # Input cost
+        )
+
+        return min_cost
+
     async def send(self, **kwargs) -> PromptOutcome:
         """
         Sends the prompt to the specified LLM and returns the response.
