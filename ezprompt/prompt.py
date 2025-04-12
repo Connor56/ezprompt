@@ -147,11 +147,19 @@ class Prompt(BasePrompt):
         """
         Renders the Jinja template with the provided inputs. Returns
         the rendered prompt string.
+
+        This should only happen once, as each instance of the class
+        represents a specific prompt call.
         """
         if self._rendered_prompt is None:
             try:
                 template = self._jinja_env.from_string(self.template)
                 self._rendered_prompt = template.render(self.inputs)
+
+                # Count the tokens
+                self._input_tokens = tiktoken.count_tokens(
+                    self._rendered_prompt
+                )
 
             except jinja2.UndefinedError as e:
                 # This should ideally be caught by _validate_inputs, but acts as a safeguard
