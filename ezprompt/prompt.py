@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 from .models import get_model_info
 from .data import save_outcome, process_completion
+import hashlib
 
 # Custom exceptions and warnings
 from .exceptions import (
@@ -90,6 +91,9 @@ class Prompt(BasePrompt):
         self.model = model
         self.api_key = api_key
         self.log = log
+
+        # Hash the template for caching
+        self._hash = hashlib.sha256(self.template.encode()).hexdigest()
 
         self._rendered_prompt: Optional[str] = None
         self._input_tokens: Optional[int] = None
