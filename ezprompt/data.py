@@ -86,7 +86,7 @@ def process_response(
     # get the tokens
     input_tokens = response.usage.prompt_tokens
     reasoning_tokens = response.usage.completion_tokens_details.reasoning_tokens
-    output_tokens = response.usage.completion_tokens
+    output_tokens = response.usage.completion_tokens - reasoning_tokens
 
     # get per token pricing
     pricing_in = model_info.pricing_in / 1_000_000
