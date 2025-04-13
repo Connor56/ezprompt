@@ -205,6 +205,11 @@ MODEL_INFO = [
 ]
 
 
+def all_models() -> List[str]:
+    """Returns a list of all model IDs."""
+    return [model.id for model in MODEL_INFO]
+
+
 def get_model_info(model_id: str) -> ModelInfo:
     """
     Gets information about a specific model, using cached data if
