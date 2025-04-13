@@ -6,9 +6,10 @@ from platformdirs import PlatformDirs
 import os
 import json
 from dataclasses import dataclass, asdict
-from typing import Optional
+from typing import Optional, List
 from openai.types.chat import ChatCompletion
 from ezprompt.models import ModelInfo
+import numpy as np
 
 # Set up the cache
 CACHE_DIR = PlatformDirs("ezprompt", "").user_data_dir
@@ -29,6 +30,20 @@ class PromptOutcome:
     # Optional, as potentially useful for analysis
     prompt: Optional[str] = None
     response: Optional[str] = None
+
+
+@dataclass
+class Centile:
+    centile: float
+    cost: float
+
+
+@dataclass
+class PromptStatistics:
+    mean_cost: float
+    centiles: List[Centile]
+    min_cost: float
+    max_cost: float
 
 
 def build_cache():
@@ -116,3 +131,23 @@ def load_cache(prompt_name: str, template_hash: str) -> List[PromptOutcome]:
     return cached_data
 
 
+def get_statistics(
+    outcomes: List[PromptOutcome],
+) -> PromptStatistics:
+    """Gets statistical measures of the cost of a prompt"""
+    costs = [outcome.total_cost for outcome in outcomes]
+
+    mean_cost = float(np.mean(costs))
+
+    # Get the centiles
+    boundaries = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    centile_values = np.percentile(costs, boundaries).tolist()
+    centiles = [
+        Centile(boundary, value)
+        for boundary, value in zip(boundaries, centile_values)
+    ]
+
+    min_cost = min(costs)
+    max_cost = max(costs)
+
+    return PromptStatistics(mean_cost, centiles, min_cost, max_cost)
