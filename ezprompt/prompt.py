@@ -9,9 +9,13 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 from .models import get_model_info
-from .data import save_outcome, process_response, PromptOutcome
+from .data import (
     save_outcome,
+    process_response,
     PromptOutcome,
+    get_statistics,
+    load_cache,
+)
 import hashlib
 import tiktoken
 
@@ -233,3 +237,11 @@ class Prompt(BasePrompt):
         """
         self.format(inputs)
         return await self.send(**kwargs)
+
+    @property
+    def stats(self):
+        """
+        Get the statistics of the prompt.
+        """
+        outcomes = load_cache(self.__class__.__name__, self._hash)
+        return get_statistics(outcomes)
