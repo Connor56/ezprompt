@@ -40,6 +40,7 @@ class Centile:
 
 @dataclass
 class PromptStatistics:
+    total_outcomes: int
     mean_cost: float
     centiles: List[Centile]
     min_cost: float
@@ -150,4 +151,10 @@ def get_statistics(
     min_cost = min(costs)
     max_cost = max(costs)
 
-    return PromptStatistics(mean_cost, centiles, min_cost, max_cost)
+    return PromptStatistics(
+        total_outcomes=len(outcomes),
+        mean_cost=mean_cost,
+        centiles=centiles,
+        min_cost=min_cost,
+        max_cost=max_cost,
+    )
