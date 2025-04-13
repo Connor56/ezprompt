@@ -147,24 +147,22 @@ class Prompt(BasePrompt):
         Renders the Jinja template with the provided inputs. Returns
         the rendered prompt string.
         """
-        if self._rendered_prompt is None:
-            try:
-                template = self._jinja_env.from_string(self.template)
-                self._rendered_prompt = template.render(self.inputs)
+        try:
+            template = self._jinja_env.from_string(self.template)
+            self._rendered_prompt = template.render(self.inputs)
 
-                # Count the tokens
-                self._input_tokens = tiktoken.count_tokens(
-                    self._rendered_prompt
-                )
+            # Count the tokens
+            encoding = tiktoken.encoding_for_model(self._model_info.id)
+            self._input_tokens = len(encoding.encode(self._rendered_prompt))
 
-            except jinja2.UndefinedError as e:
-                # This should ideally be caught by _validate_inputs, but acts as a safeguard
-                raise ValidationError(
-                    f"Error rendering template: Missing input {e}"
-                ) from e
+        except jinja2.UndefinedError as e:
+            # This should ideally be caught by _validate_inputs, but acts as a safeguard
+            raise ValidationError(
+                f"Error rendering template: Missing input {e}"
+            ) from e
 
-            except Exception as e:
-                raise TemplateError(f"Failed to render template: {e}") from e
+        except Exception as e:
+            raise TemplateError(f"Failed to render template: {e}") from e
 
         return self._rendered_prompt
 
