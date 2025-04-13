@@ -66,20 +66,18 @@ class Prompt(BasePrompt):
     def __init__(
         self,
         template: str,
-        inputs: Dict[str, Any],
         model: str,
         api_key: str,
         log: bool = False,
     ):
         """
-        Initialize the Prompt object.
+        Initialize the Prompt instance with a template, model, and
+        an api key for the LLM provider.
 
         Parameters
         ----------
         template : str
             The prompt template string (can use Jinja2 syntax).
-        inputs : dict
-            A dictionary of input variables for the template.
         model : str
             The name of the target LLM (e.g., 'gpt-3.5-turbo').
         api_key : str
@@ -88,7 +86,6 @@ class Prompt(BasePrompt):
             Whether to log output information for debugging.
         """
         self.template = template
-        self.inputs = inputs
         self.model = model
         self.api_key = api_key
         self.log = log
@@ -119,13 +116,14 @@ class Prompt(BasePrompt):
         except jinja2.TemplateSyntaxError as e:
             raise TemplateError(f"Syntax error in template: {e}") from e
 
-        self._validate_inputs()
-
     def _validate_inputs(self):
         """
         Checks if all the prompt template variables are present in
         the provided inputs.
         """
+        if self.inputs is None:
+            raise ValidationError("Inputs must be provided before validation")
+
         required_vars = meta.find_undeclared_variables(self._parsed_template)
 
         missing_vars = required_vars - set(self.inputs.keys())
@@ -148,9 +146,6 @@ class Prompt(BasePrompt):
         """
         Renders the Jinja template with the provided inputs. Returns
         the rendered prompt string.
-
-        This should only happen once, as each instance of the class
-        represents a specific prompt call.
         """
         if self._rendered_prompt is None:
             try:
@@ -193,6 +188,15 @@ class Prompt(BasePrompt):
 
         return min_cost
 
+    def format(self, inputs: Dict[str, Any]):
+        """
+        Format the prompt with the provided inputs.
+        """
+        self.inputs = inputs
+        self._validate_inputs()
+        self._render()
+        self._check()
+
     async def send(self, **kwargs) -> PromptOutcome:
         """
         Sends the prompt to the specified LLM and returns the response.
@@ -222,3 +226,10 @@ class Prompt(BasePrompt):
         outcome.response = response.choices[0].message.content
 
         return outcome
+
+    async def format_and_send(self, inputs: Dict[str, Any], **kwargs):
+        """
+        Format the prompt with the provided inputs and send it to the LLM.
+        """
+        self.format(inputs)
+        return await self.send(**kwargs)
