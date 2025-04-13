@@ -4,7 +4,9 @@ from ezprompt.data import (
     save_outcome,
     CACHE_DIR,
     process_response,
+    get_statistics,
 )
+from dataclasses import asdict
 from ezprompt.models import ModelInfo, get_model_info
 import os
 import json
@@ -32,7 +34,7 @@ def test_outcome():
         reasoning_tokens=234,
         output_tokens=22,
         model="test_model",
-        input="Is the sky always blue?",
+        prompt="Is the sky always blue?",
         response="No, the sky is not always blue. It depends on what angle the sun is hitting it.",
     )
 
@@ -100,7 +102,7 @@ def test_save_outcome(test_outcome):
 
     expected_outcome = [
         {
-            "input": "Is the sky always blue?",
+            "prompt": "Is the sky always blue?",
             "response": "No, the sky is not always blue. It depends on what angle the sun is hitting it.",
             "input_cost": 0.0,
             "reasoning_cost": 0.0,
@@ -137,7 +139,7 @@ def test_save_outcome_multiple_times(test_outcome):
     assert len(outcomes) == 2
 
     expected_outcome = {
-        "input": "Is the sky always blue?",
+        "prompt": "Is the sky always blue?",
         "response": "No, the sky is not always blue. It depends on what angle the sun is hitting it.",
         "input_cost": 0.0,
         "reasoning_cost": 0.0,
@@ -167,3 +169,31 @@ def test_process_response(test_chat_completion, test_model_info):
     assert outcome.output_cost == 0.00101
     assert outcome.tool_cost == 0.1
     assert outcome.total_cost == 0.101135
+
+
+def test_get_statistics(snapshot):
+    """Test that get_statistics correctly calculates the statistics
+    of a list of outcomes"""
+    outcomes = [
+        PromptOutcome(
+            total_cost=x + 1,
+            input_cost=x + 1,
+            reasoning_cost=x + 1,
+            output_cost=x + 1,
+            tool_cost=x + 1,
+            input_tokens=x + 1,
+            reasoning_tokens=x + 1,
+            output_tokens=x + 1,
+            model="test_model",
+        )
+        for x in range(5)
+    ]
+    statistics = get_statistics(outcomes)
+
+    assert statistics.mean_cost == 3.0
+    assert statistics.min_cost == 1.0
+    assert statistics.max_cost == 5.0
+
+    statistics_json = json.dumps(asdict(statistics))
+
+    snapshot.assert_match(statistics_json, "statistics.json")
