@@ -10,6 +10,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, Tuple, List
 from .models import get_model_info
 from .data import save_outcome, process_response, PromptOutcome
+    save_outcome,
+    PromptOutcome,
 import hashlib
 import tiktoken
 
@@ -217,7 +219,7 @@ class Prompt(BasePrompt):
         outcome = process_response(response, self._model_info)
 
         # Save the outcome to the cache
-        save_outcome(outcome, self.__name__, self._hash)
+        save_outcome(outcome, self.__class__.__name__, self._hash)
 
         # Add the text of the prompt and response to the outcome
         outcome.prompt = rendered_prompt
