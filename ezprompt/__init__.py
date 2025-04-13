@@ -30,4 +30,6 @@ __all__ = [
     "ContextLengthError",
     "EZPromptWarning",
     "UnusedInputWarning",
+    "all_models",
+    "get_model_info",
 ]
