@@ -97,3 +97,22 @@ def process_response(
         output_tokens=output_tokens,
         model=model_info.id,
     )
+
+
+def load_cache(prompt_name: str, template_hash: str) -> List[PromptOutcome]:
+    """Loads the prompt outcomes from the cache"""
+    file_path = f"{CACHE_DIR}/{prompt_name}_{template_hash}.json"
+    if not os.path.exists(file_path):
+        return []
+
+    with open(file_path, "r") as f:
+        data = json.load(f)
+
+    # TODO: this likely needs better error handling
+    cached_data = []
+    for item in data:
+        cached_data.append(PromptOutcome(**item))
+
+    return cached_data
+
+
