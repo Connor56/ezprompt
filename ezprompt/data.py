@@ -6,7 +6,7 @@ from platformdirs import PlatformDirs
 import os
 import json
 from dataclasses import dataclass, asdict
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from openai.types.chat import ChatCompletion
 from ezprompt.models import ModelInfo
 import numpy as np
@@ -45,6 +45,7 @@ class PromptStatistics:
     centiles: List[Centile]
     min_cost: float
     max_cost: float
+    input_tokens_vs_cost: List[Tuple[int, float]]
 
 
 def build_cache():
@@ -160,10 +161,15 @@ def get_statistics(
     min_cost = min(costs)
     max_cost = max(costs)
 
+    input_tokens_vs_cost = [
+        (outcome.input_tokens, outcome.total_cost) for outcome in outcomes
+    ]
+
     return PromptStatistics(
         total_outcomes=len(outcomes),
         mean_cost=mean_cost,
         centiles=centiles,
         min_cost=min_cost,
         max_cost=max_cost,
+        input_tokens_vs_cost=input_tokens_vs_cost,
     )
