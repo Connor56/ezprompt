@@ -192,6 +192,29 @@ class Prompt(BasePrompt):
 
         return min_cost
 
+    def _save_outcome(self, outcome: PromptOutcome):
+        """
+        Saves the outcome to the cache.
+
+        Implement special logic here if needed.
+        """
+        save_outcome(
+            outcome,
+            self.__class__.__name__,
+            self._hash,
+            self._model_info.id,
+        )
+
+    def _load_outcomes(self) -> List[PromptOutcome]:
+        """
+        Loads the outcome from the cache.
+
+        Implement special logic here if needed.
+        """
+        return load_cache(
+            self.__class__.__name__, self._hash, self._model_info.id
+        )
+
     def format(self, inputs: Dict[str, Any]):
         """
         Format the prompt with the provided inputs.
@@ -223,12 +246,7 @@ class Prompt(BasePrompt):
         outcome = process_response(response, self._model_info)
 
         # Save the outcome to the cache
-        save_outcome(
-            outcome,
-            self.__class__.__name__,
-            self._hash,
-            self._model_info.id,
-        )
+        self._save_outcome(outcome)
 
         # Add the text of the prompt and response to the outcome
         outcome.prompt = rendered_prompt
@@ -248,9 +266,5 @@ class Prompt(BasePrompt):
         """
         Get the statistics of the prompt.
         """
-        outcomes = load_cache(
-            self.__class__.__name__,
-            self._hash,
-            self._model_info.id,
-        )
+        outcomes = self._load_outcomes()
         return get_statistics(outcomes)
