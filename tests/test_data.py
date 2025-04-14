@@ -88,11 +88,15 @@ def test_chat_completion():
 
 def test_save_outcome(test_outcome):
     """Test that data is correctly saved in the cache directory"""
-    save_outcome(test_outcome, "test_prompt", "test_template_hash")
+    save_outcome(
+        test_outcome, "test_prompt", "test_template_hash", "test_model"
+    )
 
-    expected_file = f"{CACHE_DIR}/test_prompt_test_template_hash.json"
+    expected_file = (
+        f"{CACHE_DIR}/test_prompt_test_model_test_template_hash.json"
+    )
 
-    assert os.path.exists(f"{CACHE_DIR}/test_prompt_test_template_hash.json")
+    assert os.path.exists(expected_file)
 
     with open(expected_file, "r") as f:
         outcome = json.load(f)
@@ -122,10 +126,16 @@ def test_save_outcome(test_outcome):
 def test_save_outcome_multiple_times(test_outcome):
     """Test that saving the same prompt outcome twice works correctly"""
     # Save the outcome twice with the same name and template hash
-    save_outcome(test_outcome, "test_prompt_multiple", "test_hash")
-    save_outcome(test_outcome, "test_prompt_multiple", "test_hash")
+    save_outcome(
+        test_outcome, "test_prompt_multiple", "test_hash", "test_model"
+    )
+    save_outcome(
+        test_outcome, "test_prompt_multiple", "test_hash", "test_model"
+    )
 
-    expected_file = f"{CACHE_DIR}/test_prompt_multiple_test_hash.json"
+    expected_file = (
+        f"{CACHE_DIR}/test_prompt_multiple_test_model_test_hash.json"
+    )
 
     assert os.path.exists(expected_file)
 
