@@ -2,6 +2,7 @@
 
 """The main Prompt class for ezprompt."""
 
+import time
 import jinja2
 from jinja2 import meta
 import openai
@@ -228,6 +229,9 @@ class Prompt(BasePrompt):
         """
         Sends the prompt to the specified LLM and returns the response.
         """
+        # Time the process
+        start = time.time()
+
         cost = self._check()
 
         if cost is not None and self.log:
@@ -243,7 +247,11 @@ class Prompt(BasePrompt):
             **kwargs,
         )
 
-        outcome = process_response(response, self._model_info)
+        outcome = process_response(
+            response,
+            self._model_info,
+            time.time() - start,
+        )
 
         # Save the outcome to the cache
         self._save_outcome(outcome)

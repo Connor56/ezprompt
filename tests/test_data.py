@@ -34,6 +34,7 @@ def test_outcome():
         reasoning_tokens=234,
         output_tokens=22,
         model="test_model",
+        time_taken=5,
         prompt="Is the sky always blue?",
         response="No, the sky is not always blue. It depends on what angle the sun is hitting it.",
     )
@@ -89,7 +90,10 @@ def test_chat_completion():
 def test_save_outcome(test_outcome):
     """Test that data is correctly saved in the cache directory"""
     save_outcome(
-        test_outcome, "test_prompt", "test_template_hash", "test_model"
+        test_outcome,
+        "test_prompt",
+        "test_template_hash",
+        "test_model",
     )
 
     expected_file = (
@@ -117,6 +121,7 @@ def test_save_outcome(test_outcome):
             "reasoning_tokens": 234,
             "output_tokens": 22,
             "model": "test_model",
+            "time_taken": 5,
         }
     ]
 
@@ -160,6 +165,7 @@ def test_save_outcome_multiple_times(test_outcome):
         "reasoning_tokens": 234,
         "output_tokens": 22,
         "model": "test_model",
+        "time_taken": 5,
     }
 
     assert outcomes[0] == expected_outcome
@@ -169,7 +175,7 @@ def test_save_outcome_multiple_times(test_outcome):
 def test_process_response(test_chat_completion, test_model_info):
     """Test that process_response correctly processes a completion"""
     # Create a test completion
-    outcome = process_response(test_chat_completion, test_model_info)
+    outcome = process_response(test_chat_completion, test_model_info, 5)
 
     assert outcome.input_tokens == 25
     assert outcome.reasoning_tokens == 0
@@ -179,6 +185,7 @@ def test_process_response(test_chat_completion, test_model_info):
     assert outcome.output_cost == 0.00101
     assert outcome.tool_cost == 0.1
     assert outcome.total_cost == 0.101135
+    assert outcome.time_taken == 5
 
 
 def test_get_statistics(snapshot):
@@ -195,6 +202,7 @@ def test_get_statistics(snapshot):
             reasoning_tokens=x + 1,
             output_tokens=x + 1,
             model="test_model",
+            time_taken=x + 1,
         )
         for x in range(5)
     ]

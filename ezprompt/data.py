@@ -26,6 +26,7 @@ class PromptOutcome:
     reasoning_tokens: int
     output_tokens: int
     model: str
+    time_taken: float
     # The text that was input and the response that was generated
     # Optional, as potentially useful for analysis
     prompt: Optional[str] = None
@@ -87,6 +88,7 @@ def save_outcome(
 def process_response(
     response: ChatCompletion,
     model_info: ModelInfo,
+    time_taken: float,
 ) -> PromptOutcome:
     """Processes the openai chat completion and returns an outcome
     object."""
@@ -118,6 +120,7 @@ def process_response(
         reasoning_tokens=reasoning_tokens,
         output_tokens=output_tokens,
         model=model_info.id,
+        time_taken=time_taken,
     )
 
 
