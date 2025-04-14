@@ -54,11 +54,16 @@ def build_cache():
         os.makedirs(CACHE_DIR, exist_ok=True)
 
 
-def save_outcome(outcome: PromptOutcome, prompt_name: str, template_hash: str):
+def save_outcome(
+    outcome: PromptOutcome,
+    prompt_name: str,
+    template_hash: str,
+    model_id: str,
+):
     """Saves the prompt outcome to a json file in the cache directory"""
     build_cache()
     # Check file exists
-    file_path = f"{CACHE_DIR}/{prompt_name}_{template_hash}.json"
+    file_path = f"{CACHE_DIR}/{prompt_name}_{model_id}_{template_hash}.json"
     exists = os.path.exists(file_path)
 
     if exists:
@@ -115,9 +120,13 @@ def process_response(
     )
 
 
-def load_cache(prompt_name: str, template_hash: str) -> List[PromptOutcome]:
+def load_cache(
+    prompt_name: str,
+    template_hash: str,
+    model_id: str,
+) -> List[PromptOutcome]:
     """Loads the prompt outcomes from the cache"""
-    file_path = f"{CACHE_DIR}/{prompt_name}_{template_hash}.json"
+    file_path = f"{CACHE_DIR}/{prompt_name}_{model_id}_{template_hash}.json"
     if not os.path.exists(file_path):
         return []
 

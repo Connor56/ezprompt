@@ -223,7 +223,12 @@ class Prompt(BasePrompt):
         outcome = process_response(response, self._model_info)
 
         # Save the outcome to the cache
-        save_outcome(outcome, self.__class__.__name__, self._hash)
+        save_outcome(
+            outcome,
+            self.__class__.__name__,
+            self._hash,
+            self._model_info.id,
+        )
 
         # Add the text of the prompt and response to the outcome
         outcome.prompt = rendered_prompt
@@ -243,5 +248,9 @@ class Prompt(BasePrompt):
         """
         Get the statistics of the prompt.
         """
-        outcomes = load_cache(self.__class__.__name__, self._hash)
+        outcomes = load_cache(
+            self.__class__.__name__,
+            self._hash,
+            self._model_info.id,
+        )
         return get_statistics(outcomes)
