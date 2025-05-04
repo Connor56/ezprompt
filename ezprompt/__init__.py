@@ -8,7 +8,7 @@ Created by:
 """
 
 # Import key components to make them available at the package level
-from .prompt import Prompt
+from .prompt import StatPrompt
 from .exceptions import (  # noqa: F401
     EZPromptError,
     TemplateError,
@@ -22,7 +22,7 @@ from .warnings import (  # noqa: F401
 )
 
 __all__ = [
-    "Prompt",
+    "StatPrompt",
     "EZPromptError",
     "TemplateError",
     "ValidationError",

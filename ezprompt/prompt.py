@@ -67,7 +67,7 @@ class BasePrompt(ABC):
 
 
 # Make Prompt implement the BasePrompt interface
-class Prompt(BasePrompt):
+class StatPrompt(BasePrompt):
     """Represents a prompt using Jinja2 templating to be sent to an LLM."""
 
     def __init__(

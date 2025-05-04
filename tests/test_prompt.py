@@ -3,7 +3,7 @@ import asyncio
 from unittest.mock import patch, AsyncMock
 import os
 from dotenv import load_dotenv
-from ezprompt.prompt import Prompt
+from ezprompt.prompt import StatPrompt
 from ezprompt.exceptions import ValidationError, TemplateError
 
 # Load the .env file
@@ -18,7 +18,7 @@ def fake_prompt():
     model = "gpt-3.5-turbo"
     api_key = "fake-api-key"
 
-    prompt = Prompt(template, model, api_key)
+    prompt = StatPrompt(template, model, api_key)
 
     # Format with some test inputs
     prompt.format(inputs)
@@ -28,7 +28,7 @@ def fake_prompt():
 
 def test_prompt_initialization():
     # Test successful initialization
-    prompt = Prompt(
+    prompt = StatPrompt(
         template="Hello, {{ name }}!",
         model="gpt-3.5-turbo",
         api_key="fake-api-key",
@@ -45,7 +45,7 @@ def test_prompt_initialization():
 def test_prompt_missing_inputs():
     # Test initialization with missing inputs
     with pytest.raises(ValidationError):
-        prompt = Prompt(
+        prompt = StatPrompt(
             template="Hello, {{ name }}!",
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
@@ -57,7 +57,7 @@ def test_prompt_missing_inputs():
 def test_prompt_template_syntax_error():
     # Test initialization with template syntax error
     with pytest.raises(TemplateError):
-        Prompt(
+        StatPrompt(
             template="Hello, {{ name!",  # Missing closing bracket
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
@@ -88,7 +88,7 @@ async def test_send_method():
         mock_instance = mock_client.return_value
         mock_instance.chat.completions.create = mock_response
 
-        prompt = Prompt(
+        prompt = StatPrompt(
             template="Hello, {{ name }}!",
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
@@ -111,7 +111,7 @@ async def test_send_method():
 
     api_key = os.getenv("OPENAI_API_KEY")
 
-    prompt = Prompt(
+    prompt = StatPrompt(
         template="Hello, {{ name }}!",
         model="gpt-3.5-turbo",
         api_key=api_key,
