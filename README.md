@@ -15,7 +15,7 @@ An easy-to-use library for creating and sending prompts to various LLMs.
 ## Installation
 
 ```bash
-pip install ezprompt # Not yet available on PyPI
+pip install ez-prompt
 ```
 
 ## Basic Usage
