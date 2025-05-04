@@ -1,5 +1,5 @@
 import pytest
-from ezprompt.models import get_model_info
+from ez_prompt.models import get_model_info
 
 
 def test_get_mdeol():

@@ -1,4 +1,4 @@
-from ezprompt.clean import extract_json
+from ez_prompt.clean import extract_json
 
 
 def test_extract_json():

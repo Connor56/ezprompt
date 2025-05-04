@@ -1,10 +1,9 @@
 import pytest
-import asyncio
 from unittest.mock import patch, AsyncMock
 import os
 from dotenv import load_dotenv
-from ezprompt.prompt import StatPrompt
-from ezprompt.exceptions import ValidationError, TemplateError
+from ez_prompt.prompt import StatPrompt
+from ez_prompt.exceptions import ValidationError, TemplateError
 
 # Load the .env file
 DIR_PATH = os.path.dirname(os.path.abspath(__file__))

@@ -1,5 +1,5 @@
 import pytest
-from ezprompt.data import (
+from ez_prompt.data import (
     PromptOutcome,
     save_outcome,
     CACHE_DIR,
@@ -7,7 +7,7 @@ from ezprompt.data import (
     get_statistics,
 )
 from dataclasses import asdict
-from ezprompt.models import ModelInfo, get_model_info
+from ez_prompt.models import ModelInfo, get_model_info
 import os
 import json
 from openai.types.chat import (
