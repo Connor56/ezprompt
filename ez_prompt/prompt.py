@@ -1,5 +1,3 @@
-# ezprompt/prompt.py
-
 """The main Prompt class for ezprompt."""
 
 import time

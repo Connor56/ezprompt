@@ -4,7 +4,7 @@ Functions for retrieving and managing LLM model information.
 
 import os
 from datetime import datetime
-from ezprompt.exceptions import EZPromptError
+from ez_prompt.exceptions import EZPromptError
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
 from dotenv import load_dotenv

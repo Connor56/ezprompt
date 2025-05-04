@@ -1,5 +1,3 @@
-# ezprompt/exceptions.py
-
 """Custom exception types for the ezprompt library."""
 
 

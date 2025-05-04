@@ -8,7 +8,7 @@ import json
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Tuple
 from openai.types.chat import ChatCompletion
-from ezprompt.models import ModelInfo
+from ez_prompt.models import ModelInfo
 import numpy as np
 
 # Set up the cache

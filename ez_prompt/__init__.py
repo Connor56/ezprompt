@@ -8,7 +8,7 @@ Created by:
 """
 
 # Import key components to make them available at the package level
-from .prompt import StatPrompt
+from .prompt import StatPrompt, Prompt
 from .exceptions import (  # noqa: F401
     EZPromptError,
     TemplateError,
@@ -20,9 +20,11 @@ from .warnings import (  # noqa: F401
     EZPromptWarning,
     UnusedInputWarning,
 )
+from .models import all_models, get_model_info
 
 __all__ = [
     "StatPrompt",
+    "Prompt",
     "EZPromptError",
     "TemplateError",
     "ValidationError",
