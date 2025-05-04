@@ -50,10 +50,18 @@ class PromptStatistics:
 
 
 def build_cache():
+    """Builds the cache directory if it doesn't exist"""
     if not os.path.exists(CACHE_DIR):
-        print("hi")
         print(f"Create ezprompt cache directory: {CACHE_DIR}")
         os.makedirs(CACHE_DIR, exist_ok=True)
+
+
+def clear_cache():
+    """Clears the cache"""
+    if os.path.exists(CACHE_DIR):
+        print(f"Clear ezprompt cache directory: {CACHE_DIR}")
+        for file in os.listdir(CACHE_DIR):
+            os.remove(os.path.join(CACHE_DIR, file))
 
 
 def save_outcome(
