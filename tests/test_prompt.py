@@ -17,17 +17,25 @@ def fake_prompt():
     inputs = {"name": "World"}
     model = "gpt-3.5-turbo"
     api_key = "fake-api-key"
-    return Prompt(template, inputs, model, api_key)
+
+    prompt = Prompt(template, model, api_key)
+
+    # Format with some test inputs
+    prompt.format(inputs)
+
+    return prompt
 
 
 def test_prompt_initialization():
     # Test successful initialization
     prompt = Prompt(
         template="Hello, {{ name }}!",
-        inputs={"name": "World"},
         model="gpt-3.5-turbo",
         api_key="fake-api-key",
     )
+
+    prompt.format({"name": "World"})
+
     assert prompt.template == "Hello, {{ name }}!"
     assert prompt.inputs == {"name": "World"}
     assert prompt.model == "gpt-3.5-turbo"
@@ -37,12 +45,13 @@ def test_prompt_initialization():
 def test_prompt_missing_inputs():
     # Test initialization with missing inputs
     with pytest.raises(ValidationError):
-        Prompt(
+        prompt = Prompt(
             template="Hello, {{ name }}!",
-            inputs={},  # Missing 'name'
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
         )
+
+        prompt.format({})
 
 
 def test_prompt_template_syntax_error():
@@ -50,22 +59,20 @@ def test_prompt_template_syntax_error():
     with pytest.raises(TemplateError):
         Prompt(
             template="Hello, {{ name!",  # Missing closing bracket
-            inputs={"name": "World"},
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
         )
 
 
-def test_render_prompt(fake_prompt):
+def test__render(fake_prompt):
     # Test prompt rendering
-    rendered = fake_prompt._render_prompt()
+    rendered = fake_prompt._render()
     assert rendered == "Hello, World! How are you doing today?"
 
 
-def test_check_method(fake_prompt):
+def test__check_method(fake_prompt):
     # Test the check method returns no issues for valid prompt
-    issues, cost = fake_prompt.check()
-    assert issues is None
+    cost = fake_prompt._check()
     assert isinstance(cost, float)
 
 
@@ -83,10 +90,11 @@ async def test_send_method():
 
         prompt = Prompt(
             template="Hello, {{ name }}!",
-            inputs={"name": "World"},
             model="gpt-3.5-turbo",
             api_key="fake-api-key",
         )
+
+        prompt.format({"name": "World"})
 
         response = await prompt.send(temperature=0.7)
 
@@ -105,17 +113,18 @@ async def test_send_method():
 
     prompt = Prompt(
         template="Hello, {{ name }}!",
-        inputs={
-            "name": "You big fat ugly sausage, what do you think of that eh?"
-        },
         model="gpt-3.5-turbo",
         api_key=api_key,
         log=True,
     )
 
-    response = await prompt.send(temperature=0.3)
+    prompt.format(
+        {"name": "You big fat ugly sausage, what do you think of that eh?"},
+    )
 
-    assert False
+    response = await prompt.send(temperature=0.3)
 
     # Check that we got a response
     assert response is not None
+    assert response.tool_cost == 0
+    assert response.input_tokens == 23
