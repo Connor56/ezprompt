@@ -20,9 +20,19 @@ pip install ez-prompt
 
 ## Basic Usage
 
+See the supported models by running:
+
+```python
+from ez_prompt import list_models
+
+list_models()
+```
+
+Then, create a template, choose your model, provide an API key, format and send. Sending is asynchronous by default.
+
 ```python
 import asyncio
-from ezprompt import Prompt
+from ez_prompt import Prompt
 
 async def main():
     # Define a prompt template (details TBD)
@@ -35,20 +45,18 @@ async def main():
     # Initialize the prompt
     my_prompt = Prompt(
         template=prompt_template,
-        inputs={"source_lang": "English", "target_lang": "French", "text": "Hello, world!"},
-        model="gpt-3.5-turbo"
+        model="gpt-3.5-turbo",
+        api_key="your_api_key"
     )
 
-    # Check for potential issues and estimate cost
-    issues, cost = await my_prompt.check()
-    if issues:
-        print(f"Issues found: {issues}")
-    else:
-        print(f"Estimated cost: ${cost:.6f}")
+    # Format the prompt with inputs
+    my_prompt.format(
+        inputs={"source_lang": "English", "target_lang": "French", "text": "Hello, world!"},
+    )
 
-        # Send the prompt
-        response = await my_prompt.send()
-        print(f"Model response: {response}")
+    # Send the prompt
+    response = await my_prompt.send()
+    print(f"Model response: {response}")
 
 if __name__ == "__main__":
     # Required environment variables (e.g., OPENAI_API_KEY)
