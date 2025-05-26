@@ -20,7 +20,7 @@ from .warnings import (  # noqa: F401
     EZPromptWarning,
     UnusedInputWarning,
 )
-from .models import all_models, get_model_info
+from .models import list_models, get_model_info
 
 __all__ = [
     "StatPrompt",
@@ -32,6 +32,6 @@ __all__ = [
     "ContextLengthError",
     "EZPromptWarning",
     "UnusedInputWarning",
-    "all_models",
+    "list_models",
     "get_model_info",
 ]

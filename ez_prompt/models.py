@@ -205,7 +205,7 @@ MODEL_INFO = [
 ]
 
 
-def all_models() -> List[str]:
+def list_models() -> List[str]:
     """Returns a list of all model IDs."""
     return [model.id for model in MODEL_INFO]
 

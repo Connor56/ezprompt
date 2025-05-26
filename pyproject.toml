@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ez-prompt"
-version = "0.1.2"
+version = "0.1.3"
 description = "An easy-to-use library for creating and seinding prompts to LLMs."
 authors = ["Connor Skelland <34070858+Connor56@users.noreply.github.com>"]
 readme = "README.md"
